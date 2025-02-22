@@ -6,6 +6,14 @@ class OrderEventListener {
     this.orders = new Map();
     this.trades = new Map();
     
+    // Initialize WebSocket manager
+    this.wsManager = new WebSocketManager('wss://sdex-alb-664814673.ap-southeast-2.elb.amazonaws.com/ws');
+    
+    // Setup WebSocket event handlers
+    document.addEventListener('wsNewOrder', (event) => this.handleWsOrder(event.detail));
+    document.addEventListener('wsOrderCancelled', (event) => this.handleWsOrderCancelled(event.detail));
+    document.addEventListener('wsTrade', (event) => this.handleWsTrade(event.detail));
+    
     // ABI for order-related events
     this.eventABI = [
       {
@@ -66,6 +74,9 @@ class OrderEventListener {
 
     // Start listening to events
     this.listenToEvents();
+    
+    // Connect WebSocket
+    this.wsManager.connect();
   }
 
   listenToEvents() {
@@ -181,9 +192,34 @@ class OrderEventListener {
       .slice(0, limit);
   }
 
+  handleWsOrder(order) {
+    const orderId = this.getOrderId(order);
+    this.orders.set(orderId, { ...order, source: 'websocket' });
+    document.dispatchEvent(new CustomEvent('newOrder', { detail: order }));
+  }
+
+  handleWsOrderCancelled(order) {
+    const orderId = this.getOrderId(order);
+    if (this.orders.has(orderId)) {
+      const existingOrder = this.orders.get(orderId);
+      existingOrder.status = 'cancelled';
+      this.orders.set(orderId, existingOrder);
+      document.dispatchEvent(new CustomEvent('orderCancelled', { detail: existingOrder }));
+    }
+  }
+
+  handleWsTrade(trade) {
+    const txHash = trade.txHash || `ws-${Date.now()}-${Math.random()}`;
+    this.trades.set(txHash, { ...trade, source: 'websocket' });
+    this.updateOrdersForTrade(trade);
+    document.dispatchEvent(new CustomEvent('newTrade', { detail: trade }));
+  }
   stop() {
     if (this.contract) {
       this.contract.removeAllListeners();
+    }
+    if (this.wsManager) {
+      this.wsManager.disconnect();
     }
   }
 }
