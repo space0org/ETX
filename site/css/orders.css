@@ -1,0 +1,59 @@
+/* Order display styles */
+.orders-container {
+  margin: 1rem 0;
+}
+
+.table.table-condensed {
+  margin-bottom: 0;
+}
+
+.order-item {
+  transition: all 0.2s ease;
+}
+
+.order-item td {
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+}
+
+.order-item:hover {
+  background-color: var(--hover-bg, rgba(255, 255, 255, 0.05));
+}
+
+.order-item.cancelled {
+  text-decoration: line-through;
+  opacity: 0.5;
+}
+
+/* Light theme variables */
+body.light .order-item td {
+  --border-color: rgba(0, 0, 0, 0.1);
+  --hover-bg: rgba(0, 0, 0, 0.05);
+}
+
+/* Dark theme variables */
+body.dark .order-item td {
+  --border-color: rgba(255, 255, 255, 0.1);
+  --hover-bg: rgba(255, 255, 255, 0.05);
+}
+
+/* Price indicators */
+.order-item .price-up {
+  color: var(--up-color, #28a745);
+}
+
+.order-item .price-down {
+  color: var(--down-color, #dc3545);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .orders-container {
+    margin: 0.5rem 0;
+    overflow-x: auto;
+  }
+  
+  .table.table-condensed {
+    min-width: 600px;
+  }
+}
